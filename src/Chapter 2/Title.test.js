@@ -1,11 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 // import Title from "./Title";
 
 // This test is for fixing the issue with not re-rendering a component
 // when its local variable changes. Some changes are made to ./Title component.
 describe("Making React re-render global state", () => {
-  test("React component updates a global state and re-renders itself", () => {
+  test("React component updates a global state and re-renders itself", async () => {
     // Arrange.
     const clicked = jest.fn();
     const rendered = jest.fn();
@@ -46,20 +46,28 @@ describe("Making React re-render global state", () => {
 
     function onClick(count) {
       setGlobalCounter(count + 1);
+      // count++;
       // console.log('clicked', count);
       clicked(count + 1);
-      rerender();
+      rerender(
+        <Title />
+      );
     };
 
     // First click.
     fireEvent.click(screen.getByText('+'));
     expect(clicked).toHaveBeenCalledWith(1);
-    expect(rendered).toHaveReturnedTimes(1);
-    screen.debug();
-    expect(screen.getByTestId('test'))
-      .toHaveTextContent("Hello World+1");
+    expect(rendered).toHaveBeenCalledTimes(2);
+    let textElement = await screen.findByTestId('test');
+    expect(textElement).toBeInTheDocument();
+    expect(textElement).toHaveTextContent('Hello World+1');
 
-    
-
+    // Second click.
+    fireEvent.click(screen.getByText('+'));
+    expect(clicked).toHaveBeenCalledWith(2);
+    expect(rendered).toHaveBeenCalledTimes(3);
+    textElement = await screen.findByTestId('test');
+    expect(textElement).toBeInTheDocument();
+    expect(textElement).toHaveTextContent('Hello World+2');
   });
 });
